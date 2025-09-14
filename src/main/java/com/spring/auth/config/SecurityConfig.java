@@ -1,7 +1,12 @@
 package com.spring.auth.config;
 
+import com.spring.auth.services.AppUserDetailsService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -19,14 +24,16 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final AppUserDetailsService appUserDetailsService;
 
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer :: disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/register", "/send-reset-otp", "/reset-password",
-                                "/logout")
+                        .requestMatchers("/api/v1.0/register", "/api/v1.0/login", "/api/v1.0/send-reset-otp", "/api/v1.0/reset-password", "/api/v1.0/logout")
                 .permitAll().anyRequest().authenticated())
                 .sessionManagement(
                         session -> session.sessionCreationPolicy
@@ -48,7 +55,7 @@ public class SecurityConfig {
 
     public CorsConfigurationSource corsConfigurationSource(){
         CorsConfiguration config = new CorsConfiguration();
-                config.setAllowedOrigins(List.of("http://localhost:5173"));
+                config.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:8080"));
                 config.setAllowedMethods(List.of("GET","POST", "PUT", "DELETE","PATCH", "OPTIONS"));
                 config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
                 config.setAllowCredentials(true);
@@ -56,5 +63,14 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(){
+        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
+        authenticationProvider.setUserDetailsService(appUserDetailsService);
+        authenticationProvider.setPasswordEncoder(passwordEncoder());
+        return new ProviderManager(authenticationProvider);
+
     }
 }

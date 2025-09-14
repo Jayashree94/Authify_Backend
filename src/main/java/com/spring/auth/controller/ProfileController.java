@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+//@RequestMapping("/api/v1.0") - contextpath added in properties file
 @RequestMapping("/api/v1.0")
 @RequiredArgsConstructor
 public class ProfileController {
