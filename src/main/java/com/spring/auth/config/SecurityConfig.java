@@ -29,6 +29,7 @@ public class SecurityConfig {
 
     private final AppUserDetailsService appUserDetailsService;
 
+    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer :: disable)
@@ -57,7 +58,7 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
                 config.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:8080"));
                 config.setAllowedMethods(List.of("GET","POST", "PUT", "DELETE","PATCH", "OPTIONS"));
-                config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+                config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
                 config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
