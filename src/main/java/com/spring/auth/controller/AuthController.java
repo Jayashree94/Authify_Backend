@@ -1,12 +1,15 @@
 package com.spring.auth.controller;
 
 
+import com.spring.auth.config.SecurityConfig;
 import com.spring.auth.io.AuthRequest;
 import com.spring.auth.io.AuthResponse;
 import com.spring.auth.services.AppUserDetailsService;
 import com.spring.auth.utils.JWTUtils;
 import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -26,6 +29,8 @@ import java.util.Map;
 @RequestMapping("/api/v1.0")
 @RequiredArgsConstructor
 public class AuthController {
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
+
 
     private final AuthenticationManager authenticationManager;
     private final AppUserDetailsService appUserDetailsService;
@@ -33,8 +38,12 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest request) {
         try {
+            logger.info("authenticate");
+
             authenticate(request.getEmail(), request.getPassword());
             final UserDetails userDetails = appUserDetailsService.loadUserByUsername(request.getEmail());
+            logger.info("generating jwt token");
+
             final String jwtToken = jwtUtils.generateToken(userDetails);
             ResponseCookie cookie = ResponseCookie.from("jwt", jwtToken)
                     .httpOnly(true)
@@ -47,18 +56,24 @@ public class AuthController {
 
 
         } catch (BadCredentialsException ex) {
+            logger.info("catch 1");
+
             Map<String, Object> error = new HashMap<>();
             error.put("error", true);
             error.put("message", "Email or Password is incorrect");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
 
         } catch (DisabledException ex) {
+            logger.info("catch 2");
+
             Map<String, Object> error = new HashMap<>();
             error.put("error", true);
             error.put("message", "User Account Disabled");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
 
         } catch (Exception ex) {
+            logger.info("catch 3");
+
             Map<String, Object> error = new HashMap<>();
             error.put("error", true);
             error.put("message", "Authentication failed");
